@@ -7,26 +7,26 @@ export type ElementByTag<TagName extends keyof ElementTagNameMap> = ElementTagNa
 
 export type As<BaseProps = any> = React.ElementType<BaseProps>;
 
-export type PropsWithAs<ComponentType extends As, ComponentProps> = ComponentProps &
+export type PropsWithAs<ComponentProps, ComponentType extends As> = ComponentProps &
   Omit<React.ComponentPropsWithRef<ComponentType>, 'as' | keyof ComponentProps> & {
     as?: ComponentType;
   };
 
-export type PropsFromAs<ComponentType extends As, ComponentProps> = (PropsWithAs<
-  ComponentType,
-  ComponentProps
+export type PropsFromAs<ComponentProps, ComponentType extends As> = (PropsWithAs<
+  ComponentProps,
+  ComponentType
 > & { as: ComponentType }) &
-  PropsWithAs<ComponentType, ComponentProps>;
+  PropsWithAs<ComponentProps, ComponentType>;
 
-export interface FunctionComponentWithAs<ComponentType extends As, ComponentProps> {
+export interface FunctionComponentWithAs<ComponentProps, ComponentType extends As> {
   /**
    * Inherited from React.FunctionComponent with modifications to support `as`
    */
-  <TT extends As>(props: PropsWithAs<TT, ComponentProps>, context?: any): React.ReactElement<
+  <TT extends As>(props: PropsWithAs<ComponentProps, TT>, context?: any): React.ReactElement<
     any,
     any
   > | null;
-  (props: PropsWithAs<ComponentType, ComponentProps>, context?: any): React.ReactElement<
+  (props: PropsWithAs<ComponentProps, ComponentType>, context?: any): React.ReactElement<
     any,
     any
   > | null;
@@ -35,18 +35,18 @@ export interface FunctionComponentWithAs<ComponentType extends As, ComponentProp
    * Inherited from React.FunctionComponent
    */
   displayName?: string;
-  propTypes?: React.WeakValidationMap<PropsWithAs<ComponentType, ComponentProps>>;
+  propTypes?: React.WeakValidationMap<PropsWithAs<ComponentProps, ComponentType>>;
   contextTypes?: React.ValidationMap<any>;
-  defaultProps?: Partial<PropsWithAs<ComponentType, ComponentProps>>;
+  defaultProps?: Partial<PropsWithAs<ComponentProps, ComponentType>>;
 }
 
-interface ExoticComponentWithAs<ComponentType extends As, ComponentProps> {
+interface ExoticComponentWithAs<ComponentProps, ComponentType extends As> {
   /**
    * **NOTE**: Exotic components are not callable.
    * Inherited from React.ExoticComponent with modifications to support `as`
    */
-  <TT extends As>(props: PropsWithAs<TT, ComponentProps>): React.ReactElement | null;
-  (props: PropsWithAs<ComponentType, ComponentProps>): React.ReactElement | null;
+  <TT extends As>(props: PropsWithAs<ComponentProps, TT>): React.ReactElement | null;
+  (props: PropsWithAs<ComponentProps, ComponentType>): React.ReactElement | null;
 
   /**
    * Inherited from React.ExoticComponent
@@ -54,35 +54,38 @@ interface ExoticComponentWithAs<ComponentType extends As, ComponentProps> {
   readonly $$typeof: symbol;
 }
 
-interface NamedExoticComponentWithAs<ComponentType extends As, ComponentProps>
-  extends ExoticComponentWithAs<ComponentType, ComponentProps> {
+interface NamedExoticComponentWithAs<ComponentProps, ComponentType extends As>
+  extends ExoticComponentWithAs<ComponentProps, ComponentType> {
   /**
    * Inherited from React.NamedExoticComponent
    */
   displayName?: string;
 }
 
-export interface ForwardRefExoticComponentWithAs<ComponentType extends As, ComponentProps>
-  extends NamedExoticComponentWithAs<ComponentType, ComponentProps> {
+export interface ForwardRefExoticComponentWithAs<ComponentProps, ComponentType extends As>
+  extends NamedExoticComponentWithAs<ComponentProps, ComponentType> {
   /**
    * Inherited from React.ForwardRefExoticComponent
    * Will show `ForwardRef(${Component.displayName || Component.name})` in devtools by default,
    * but can be given its own specific name
    */
-  defaultProps?: Partial<PropsWithAs<ComponentType, ComponentProps>>;
-  propTypes?: React.WeakValidationMap<PropsWithAs<ComponentType, ComponentProps>>;
+  defaultProps?: Partial<PropsWithAs<ComponentProps, ComponentType>>;
+  propTypes?: React.WeakValidationMap<PropsWithAs<ComponentProps, ComponentType>>;
 }
 
 export interface MemoExoticComponentWithAs<ComponentType extends As, ComponentProps>
-  extends NamedExoticComponentWithAs<ComponentType, ComponentProps> {
+  extends NamedExoticComponentWithAs<ComponentProps, ComponentType> {
   readonly type: ComponentType extends React.ComponentType
     ? ComponentType
-    : FunctionComponentWithAs<ComponentType, ComponentProps>;
+    : FunctionComponentWithAs<ComponentProps, ComponentType>;
 }
 
-export interface ForwardRefWithAsRenderFunction<ComponentType extends As, ComponentProps = {}> {
+export interface ForwardRefWithAsRenderFunction<
+  ComponentProps = {},
+  ComponentType extends As = 'div'
+> {
   (
-    props: React.PropsWithChildren<PropsFromAs<ComponentType, ComponentProps>>,
+    props: React.PropsWithChildren<PropsFromAs<ComponentProps, ComponentType>>,
     ref:
       | ((
           instance:

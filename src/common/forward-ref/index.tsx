@@ -8,16 +8,16 @@ import {
 } from './types';
 
 export function forwardRefWithAs<Props, ComponentType extends As = 'div'>(
-  render: ForwardRefWithAsRenderFunction<ComponentType, Props>
+  render: ForwardRefWithAsRenderFunction<Props, ComponentType>
 ) {
   return (React.forwardRef(render) as unknown) as ForwardRefExoticComponentWithAs<
-    ComponentType,
-    Props
+    Props,
+    ComponentType
   >;
 }
 
 export function memoWithAs<Props, ComponentType extends As = 'div'>(
-  Component: FunctionComponentWithAs<ComponentType, Props>,
+  Component: FunctionComponentWithAs<Props, ComponentType>,
   propsAreEqual?: (
     prevProps: Readonly<React.PropsWithChildren<Props>>,
     nextProps: Readonly<React.PropsWithChildren<Props>>

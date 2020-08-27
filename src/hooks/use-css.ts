@@ -1,3 +1,4 @@
+import * as React from 'react';
 import camelCase from 'camelcase';
 import { properties } from '../common/css-properties';
 import { aliases, multiples, css } from '../css';
@@ -123,6 +124,7 @@ export const config: any = {
   objectPosition: true,
   backgroundAttachment: true,
   outline: true,
+  textStyle: true,
 };
 
 config['bgAttachment'] = config.backgroundAttachment;
@@ -248,10 +250,14 @@ export const useCss = ({
   };
   const theme = useTheme();
 
-  const isCssProp = (prop: any) =>
-    properties.find(cssProp => camelCase(cssProp) === prop) ||
-    Object.keys(aliases).find(alias => alias === prop) ||
-    Object.keys(multiples).find(alias => alias === prop);
+  const isCssProp = React.useCallback(
+    (prop: any) =>
+      properties.find(cssProp => camelCase(cssProp) === prop) ||
+      Object.keys(aliases).find(alias => alias === prop) ||
+      Object.keys(multiples).find(alias => alias === prop) ||
+      Object.keys(config).find(alias => alias === prop),
+    []
+  );
 
   Object.keys(props).forEach(prop => {
     if (isCssProp(prop)) {
