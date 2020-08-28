@@ -125,12 +125,16 @@ export const config: any = {
   backgroundAttachment: true,
   outline: true,
   textStyle: true,
+  buttonStyle: true,
+  colorStyle: true,
 };
 
 config['bgAttachment'] = config.backgroundAttachment;
 config['textDecor'] = config.textDecoration;
 config['listStylePos'] = config.listStylePosition;
 config['listStyleImg'] = config.listStyleImage;
+
+// const variantProps = ['textStyle', 'buttonStyle', 'colorStyle'];
 
 // Transform the custom alias to a format that styled-system CSS supports
 const transformAlias = (prop: string, propValue: any) => {
@@ -266,5 +270,7 @@ export const useCss = ({
     }
   });
 
-  return [css(_css)(theme), rest];
+  const styles = css(_css)(theme);
+
+  return [styles, rest];
 };
