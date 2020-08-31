@@ -22,11 +22,6 @@
     "emotion": "^10.0.27",
     "react": ">=16"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
   "prettier": "@blockstack/prettier-config",
   "author": "Thomas Osmonson",
   "sideEffects": false,
