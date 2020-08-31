@@ -1,132 +1,47 @@
-import * as React from 'react';
 import camelCase from 'camelcase';
 import { properties } from '../common/css-properties';
-import { aliases, multiples, css } from '../css';
-import { useTheme } from './use-theme';
+import { aliases, multiples, css, Theme } from '../css';
+import { useCallback } from 'react';
 
 export const config: any = {
-  roundedTop: {
-    properties: ['borderTopLeftRadius', 'borderTopRightRadius'],
-    scale: 'radii',
-  },
-  roundedBottom: {
-    properties: ['borderBottomLeftRadius', 'borderBottomRightRadius'],
-    scale: 'radii',
-  },
-  roundedLeft: {
-    properties: ['borderTopLeftRadius', 'borderBottomLeftRadius'],
-    scale: 'radii',
-  },
-  roundedRight: {
-    properties: ['borderTopRightRadius', 'borderBottomRightRadius'],
-    scale: 'radii',
-  },
-  roundedTopRight: {
-    property: 'borderTopRightRadius',
-    scale: 'radii',
-  },
-  roundedTopLeft: {
-    property: 'borderTopLeftRadius',
-    scale: 'radii',
-  },
-  roundedBottomRight: {
-    property: 'borderBottomRightRadius',
-    scale: 'radii',
-  },
-  roundedBottomLeft: {
-    property: 'borderBottomLeftRadius',
-    scale: 'radii',
-  },
-  rounded: {
-    property: 'borderRadius',
-    scale: 'radii',
-  },
-  d: {
-    property: 'display',
-  },
-  w: {
-    property: 'width',
-    scale: 'sizes',
-  },
-  minW: {
-    property: 'minWidth',
-    scale: 'sizes',
-  },
-  maxW: {
-    property: 'maxWidth',
-    scale: 'sizes',
-  },
-  h: {
-    property: 'height',
-    scale: 'sizes',
-  },
-  minH: {
-    property: 'minHeight',
-    scale: 'sizes',
-  },
-  maxH: {
-    property: 'maxHeight',
-    scale: 'sizes',
-  },
-  bgImg: {
-    property: 'backgroundImage',
-  },
-  bgSize: {
-    property: 'backgroundSize',
-  },
-  bgPos: {
-    property: 'backgroundPosition',
-  },
-  bgRepeat: {
-    property: 'backgroundRepeat',
-  },
-  pos: {
-    property: 'position',
-  },
-  flexDir: {
-    property: 'flexDirection',
-  },
-  shadow: {
-    property: 'boxShadow',
-    scale: 'shadows',
-  },
-  textDecoration: true,
-  overflowX: true,
-  overflowY: true,
-  textTransform: true,
-  animation: true,
-  appearance: true,
-  transform: true,
-  transformOrigin: true,
-  visibility: true,
-  whiteSpace: true,
-  userSelect: true,
-  pointerEvents: true,
-  wordBreak: true,
-  overflowWrap: true,
-  textOverflow: true,
-  boxSizing: true,
-  cursor: true,
-  resize: true,
-  transition: true,
-  listStyleType: true,
-  listStylePosition: true,
-  listStyleImage: true,
-  fill: {
-    property: 'fill',
-    scale: 'colors',
-  },
-  stroke: {
-    property: 'stroke',
-    scale: 'colors',
-  },
-  objectFit: true,
-  objectPosition: true,
-  backgroundAttachment: true,
-  outline: true,
-  textStyle: true,
-  buttonStyle: true,
-  colorStyle: true,
+  roundedTopRight: 'borderTopRightRadius',
+  roundedTopLeft: 'borderTopLeftRadius',
+  roundedBottomRight: 'borderBottomRightRadius',
+  roundedBottomLeft: 'borderBottomLeftRadius',
+  rounded: 'borderRadius',
+  d: 'display',
+  w: 'width',
+  minW: 'minWidth',
+  maxW: 'maxWidth',
+  h: 'height',
+  minH: 'minHeight',
+  maxH: 'maxHeight',
+  bgImg: 'backgroundImage',
+  bgSize: 'backgroundSize',
+  bgPos: 'backgroundPosition',
+  bgRepeat: 'backgroundRepeat',
+  pos: 'position',
+  flexDir: 'flexDirection',
+  dir: 'flexDirection',
+  direction: 'flexDirection',
+  align: 'alignItems',
+  justify: 'justifyContent',
+  wrap: 'flexWrap',
+  shadow: 'boxShadow',
+
+  // grid
+  templateColumns: 'gridTemplateColumns',
+  gap: 'gridGap',
+  rowGap: 'gridRowGap',
+  columnGap: 'gridColumnGap',
+  autoFlow: 'gridAutoFlow',
+  autoRows: 'gridAutoRows',
+  autoColumns: 'gridAutoColumns',
+  templateRows: 'gridTemplateRows',
+  templateAreas: 'gridTemplateAreas',
+  area: 'gridArea',
+  column: 'gridColumn',
+  row: 'gridRow',
 };
 
 config['bgAttachment'] = config.backgroundAttachment;
@@ -134,7 +49,7 @@ config['textDecor'] = config.textDecoration;
 config['listStylePos'] = config.listStylePosition;
 config['listStyleImg'] = config.listStyleImage;
 
-// const variantProps = ['textStyle', 'buttonStyle', 'colorStyle'];
+const variantProps = ['textStyle', 'buttonStyle', 'colorStyle'];
 
 // Transform the custom alias to a format that styled-system CSS supports
 const transformAlias = (prop: string, propValue: any) => {
@@ -196,6 +111,14 @@ const notFirst = '&:not(:first-of-type)';
 const notLast = '&:not(:last-of-type)';
 const groupHover = '[role=group]:hover &';
 
+export const allPossibleProps = [
+  ...variantProps,
+  ...properties.map(prop => camelCase(prop)),
+  ...Object.keys(aliases),
+  ...Object.keys(multiples),
+  ...Object.keys(config),
+];
+
 export const useCss = ({
   _after,
   _focus,
@@ -221,56 +144,67 @@ export const useCss = ({
   _mixed,
   _odd,
   _even,
+  css: _cssProp,
+  sx: _sxProp,
   ...props
 }: any) => {
-  const _css: Record<string, any> = {
-    [hover]: tx(_hover),
-    [focus]: tx(_focus),
-    [active]: tx(_active),
-    [visited]: tx(_visited),
-    [disabled]: tx(_disabled),
-    [selected]: tx(_selected),
-    [invalid]: tx(_invalid),
-    [expanded]: tx(_expanded),
-    [grabbed]: tx(_grabbed),
-    [readOnly]: tx(_readOnly),
-    [first]: tx(_first),
-    [notFirst]: tx(_notFirst),
-    [notLast]: tx(_notLast),
-    [last]: tx(_last),
-    [odd]: tx(_odd),
-    [even]: tx(_even),
-    [mixed]: tx(_mixed),
-    [checked]: tx(_checked),
-    [pressed]: tx(_pressed),
-    [groupHover]: tx(_groupHover),
-    '&:before': tx(_before),
-    '&:after': tx(_after),
-    '&:focus-within': tx(_focusWithin),
-    '&::placeholder': tx(_placeholder),
+  const _css: Record<string, any> = {};
+  const _pseudo: Record<string, any> = {
+    [hover]: _hover,
+    [focus]: _focus,
+    [active]: _active,
+    [visited]: _visited,
+    [disabled]: _disabled,
+    [selected]: _selected,
+    [invalid]: _invalid,
+    [expanded]: _expanded,
+    [grabbed]: _grabbed,
+    [readOnly]: _readOnly,
+    [first]: _first,
+    [notFirst]: _notFirst,
+    [notLast]: _notLast,
+    [last]: _last,
+    [odd]: _odd,
+    [even]: _even,
+    [mixed]: _mixed,
+    [checked]: _checked,
+    [pressed]: _pressed,
+    [groupHover]: _groupHover,
+    '&:before': _before,
+    '&:after': _after,
+    '&:focus-within': _focusWithin,
+    '&::placeholder': _placeholder,
   };
   let rest = {
     ...props,
   };
-  const theme = useTheme();
 
-  const isCssProp = React.useCallback(
-    (prop: any) =>
-      properties.find(cssProp => camelCase(cssProp) === prop) ||
-      Object.keys(aliases).find(alias => alias === prop) ||
-      Object.keys(multiples).find(alias => alias === prop) ||
-      Object.keys(config).find(alias => alias === prop),
+  const isCssProp = useCallback(
+    (prop: string) => allPossibleProps.find(cssProp => cssProp === prop),
     []
   );
 
-  Object.keys(props).forEach(prop => {
+  const propKeys = Object.keys(props);
+
+  propKeys.forEach(prop => {
     if (isCssProp(prop)) {
       _css[prop] = props[prop];
       delete rest[prop];
     }
   });
 
-  const styles = css(_css)(theme);
+  const styles = useCallback(
+    (theme: Theme) => {
+      const _styles = css(_css)(theme) || {};
+      const pseudoStyles = css(_pseudo)(theme) || {};
+      const cssPropStyles = css(_cssProp)(theme) || {};
+      const sxPropStyles = css(_sxProp)(theme) || {};
 
+      const result = { ..._styles, ...pseudoStyles, ...cssPropStyles, ...sxPropStyles };
+
+      return result;
+    },
+    [_css, _pseudo, _cssProp, _sxProp]
+  );
   return [styles, rest];
 };

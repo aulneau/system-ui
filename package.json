@@ -1,7 +1,7 @@
 {
-  "name": "@stacks/system-ui",
+  "name": "@stacks/ui-core",
   "private": false,
-  "version": "0.1.0-beta.2",
+  "version": "1.0.0-beta.2",
   "license": "MIT",
   "files": [
     "dist",
@@ -50,7 +50,11 @@
   },
   "dependencies": {
     "@emotion/core": "^10.0.35",
+    "@emotion/react": "^11.0.0-next.15",
+    "@emotion/styled": "^11.0.0-next.15",
+    "@styled-system/should-forward-prop": "^5.1.5",
     "camelcase": "^6.0.0",
-    "emotion": "^10.0.27"
+    "emotion": "^10.0.27",
+    "micro-memoize": "^4.0.9"
   }
 }

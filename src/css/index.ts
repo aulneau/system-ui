@@ -5,7 +5,7 @@ import {
   Theme,
   ThemeUICSSObject,
 } from './types';
-
+import memoize from 'micro-memoize';
 export * from './types';
 
 export function get(
@@ -191,7 +191,46 @@ export const aliases = {
   pl: 'paddingLeft',
   px: 'paddingX',
   py: 'paddingY',
+  roundedTopRight: 'borderTopRightRadius',
+  roundedTopLeft: 'borderTopLeftRadius',
+  roundedBottomRight: 'borderBottomRightRadius',
+  roundedBottomLeft: 'borderBottomLeftRadius',
+  rounded: 'borderRadius',
+  d: 'display',
+  w: 'width',
+  minW: 'minWidth',
+  maxW: 'maxWidth',
+  h: 'height',
+  minH: 'minHeight',
+  maxH: 'maxHeight',
+  bgImg: 'backgroundImage',
+  bgSize: 'backgroundSize',
+  bgPos: 'backgroundPosition',
+  bgRepeat: 'backgroundRepeat',
+  pos: 'position',
+  flexDir: 'flexDirection',
+  dir: 'flexDirection',
+  direction: 'flexDirection',
+  align: 'alignItems',
+  justify: 'justifyContent',
+  wrap: 'flexWrap',
+  shadow: 'boxShadow',
+
+  // grid
+  templateColumns: 'gridTemplateColumns',
+  gap: 'gridGap',
+  rowGap: 'gridRowGap',
+  columnGap: 'gridColumnGap',
+  autoFlow: 'gridAutoFlow',
+  autoRows: 'gridAutoRows',
+  autoColumns: 'gridAutoColumns',
+  templateRows: 'gridTemplateRows',
+  templateAreas: 'gridTemplateAreas',
+  area: 'gridArea',
+  column: 'gridColumn',
+  row: 'gridRow',
 } as const;
+
 type Aliases = typeof aliases;
 
 export const multiples = {
@@ -200,6 +239,10 @@ export const multiples = {
   paddingX: ['paddingLeft', 'paddingRight'],
   paddingY: ['paddingTop', 'paddingBottom'],
   size: ['width', 'height'],
+  roundedTop: ['borderTopLeftRadius', 'borderTopRightRadius'],
+  roundedBottom: ['borderBottomLeftRadius', 'borderBottomRightRadius'],
+  roundedLeft: ['borderTopLeftRadius', 'borderBottomLeftRadius'],
+  roundedRight: ['borderTopRightRadius', 'borderBottomRightRadius'],
 };
 
 export const scales = {
@@ -403,60 +446,64 @@ const responsive = (styles: Exclude<ThemeUIStyleObject, ThemeDerivedStyles>) => 
 
 type CssPropsArgument = { theme: Theme } | Theme;
 
-export const css = (args: ThemeUIStyleObject = {}) => (props: CssPropsArgument = {}): CSSObject => {
-  const theme: Theme = {
-    ...defaultTheme,
-    ...('theme' in props ? props.theme : props),
-  };
-  let result: CSSObject = {};
-  const obj = typeof args === 'function' ? args(theme) : args;
-  const styles = responsive(obj)(theme);
-
-  for (const key in styles) {
-    const x = styles[key as keyof typeof styles];
-    const val = typeof x === 'function' ? x(theme) : x;
-
-    if (key === 'variant') {
-      const variant = css(get(theme, val as string))(theme);
-      result = { ...result, ...variant };
-      continue;
-    }
-
-    if (val && typeof val === 'object') {
-      // TODO: val can also be an array here. Is this a bug? Can it be reproduced?
-      result[key] = css(val as ThemeUICSSObject)(theme);
-      continue;
-    }
-
-    const prop = key in aliases ? aliases[key as keyof Aliases] : key;
-    const scaleName = prop in scales ? scales[prop as keyof Scales] : undefined;
-    const scale = get(theme, scaleName as any, get(theme, prop, {}));
-    const transform: any = get(transforms, prop, get);
-    const value = transform(scale, val, val);
-
-    if (prop in multiples) {
-      const dirs = multiples[prop as keyof typeof multiples];
-
-      for (let i = 0; i < dirs.length; i++) {
-        result[dirs[i]] = value;
-      }
-    } else if (
-      ['textStyle', 'colorStyle', 'buttonStyle'].find(v => v === prop) &&
-      typeof result === 'object'
-    ) {
-      result = {
-        ...result,
-        ...value,
+export const css = (args: ThemeUIStyleObject = {}) =>
+  memoize(
+    (props: CssPropsArgument = {}): CSSObject => {
+      const theme: Theme = {
+        ...defaultTheme,
+        ...('theme' in props ? props.theme : props),
       };
-    } else {
-      const stringValue = String(value);
-      if (stringValue !== '[object Object]') {
-        result[prop] = stringValue;
-      } else {
-        console.warn('System UI: An object got converted into a string', prop, value);
-      }
-    }
-  }
+      let result: CSSObject = {};
+      const obj = typeof args === 'function' ? args(theme) : args;
+      const styles = responsive(obj)(theme);
 
-  return result;
-};
+      for (const key in styles) {
+        const x = styles[key as keyof typeof styles];
+        const val = typeof x === 'function' ? x(theme) : x;
+
+        if (key === 'variant') {
+          const variant = css(get(theme, val as string))(theme);
+          result = { ...result, ...variant };
+          continue;
+        }
+
+        if (val && typeof val === 'object') {
+          // TODO: val can also be an array here. Is this a bug? Can it be reproduced?
+          result[key] = css(val as ThemeUICSSObject)(theme);
+          continue;
+        }
+
+        const prop = key in aliases ? aliases[key as keyof Aliases] : key;
+
+        const scaleName = prop in scales ? scales[prop as keyof Scales] : undefined;
+        const scale = get(theme, scaleName as any, get(theme, prop, {}));
+        const transform: any = get(transforms, prop, get);
+        const value = transform(scale, val, val);
+
+        if (prop in multiples) {
+          const dirs = multiples[prop as keyof typeof multiples];
+
+          for (let i = 0; i < dirs.length; i++) {
+            result[dirs[i]] = value;
+          }
+        } else if (
+          ['textStyle', 'colorStyle', 'buttonStyle'].find(v => v === prop) &&
+          typeof result === 'object'
+        ) {
+          result = {
+            ...result,
+            ...value,
+          };
+        } else {
+          const stringValue = String(value);
+          if (stringValue !== '[object Object]') {
+            result[prop] = stringValue;
+          } else {
+            console.warn('System UI: An object got converted into a string', prop, value);
+          }
+        }
+      }
+
+      return result;
+    }
+  );
